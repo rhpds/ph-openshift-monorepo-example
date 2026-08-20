@@ -91,11 +91,39 @@ approval_checklist:
   content:
     prerequisites_verifiable: false
     assessment_strategy: ""
-    catalog_gap: ""
+    catalog_gap: "No existing catalog item targets lab authors building RHDP labs in a monorepo pattern. Every GitOps and Ansible lab in the catalog targets application developers or SEs deploying production workloads. This design uniquely covers the Publishing House development workflow itself — combining Showroom content, GitOps infrastructure, and Ansible automation in a single repository — for a beginner audience of content developers."
     design_overview: ""
     module_summaries: []
-    rcars_overlap_pct: null
-    rcars_top_matches: []
+    rcars_overlap_pct: 82
+    rcars_top_matches:
+      - title: "Service Enablement: App Platform Software Factory"
+        ci_name: "openshift-cnv.app-platform-factory-cnv.prod"
+        url: "https://catalog.demo.redhat.com/catalog?item=openshift-cnv.app-platform-factory-cnv.prod"
+        relevance_score: 82
+        why_it_fits: "Covers GitOps with Argo CD and OpenShift as core components, which aligns with the GitOps pillar of this design. Does not include AAP or monorepo/Showroom lab content structure."
+        workloads:
+          - role: "ocp4_workload_authentication"
+            collection: "agnosticd.core_workloads"
+          - role: "ocp4_workload_gitops_bootstrap"
+            collection: "agnosticd.core_workloads"
+          - role: "ocp4_workload_ocp_console_embed"
+            collection: "agnosticd.showroom"
+          - role: "ocp4_workload_openshift_gitops"
+            collection: "agnosticd.core_workloads"
+          - role: "ocp4_workload_showroom"
+            collection: "agnosticd.showroom"
+      - title: "OpenShift GitOps Workshop"
+        ci_name: "sandboxes-gpte.ocp-gitops.prod"
+        url: "https://catalog.demo.redhat.com/catalog?item=sandboxes-gpte.ocp-gitops.prod"
+        relevance_score: 80
+        why_it_fits: "Directly covers OpenShift GitOps (Argo CD) hands-on deployment workflows. No Ansible, no monorepo structure — covers only the GitOps pillar at intermediate difficulty."
+        workloads: []
+      - title: "OpenShift Advanced App Platform Demo"
+        ci_name: "published.ocp4-adv-app-platform-demo.prod"
+        url: "https://catalog.demo.redhat.com/catalog?item=published.ocp4-adv-app-platform-demo.prod"
+        relevance_score: 73
+        why_it_fits: "Includes GitOps with Argo CD as part of a broader platform story. Advanced-level sales demo for SEs — no Ansible, no monorepo/Showroom lab content pattern."
+        workloads: []
     rejections: []
 
   infra:
