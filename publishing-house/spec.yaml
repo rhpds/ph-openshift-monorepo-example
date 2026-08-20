@@ -16,8 +16,8 @@ project:
   automation_type: "both"
   description: "This hands-on lab introduces a monorepo-based approach for building and managing technical labs through Publishing House.  Participants will work from a single Git repository that contains the lab content, Showroom configuration, GitOps resources, Ansible automation, and the Ansible collections required by the lab. Instead of maintaining content and automation across multiple repositories, the complete lab lifecycle is managed and versioned together.  During the lab, participants will use Publishing House to scaffold the lab structure, build the learner experience with Showroom, deploy required platform components through GitOps, and use Ansible collections from the same repository to configure and prepare the environment.  The lab demonstrates how a monorepo can simplify development, testing, versioning, and ongoing maintenance while still keeping clear boundaries between content, infrastructure configuration, and automation. Participants will leave with a practical understanding of how Publishing House can provide a repeatable development workflow for labs that need Showroom, GitOps, and Ansible working together. "
   # content_reviewer_email and infra_reviewer_email are assigned by the RHDP team — not set by the author
-  jira_ticket: ""
-  workflow_id: ""
+  jira_ticket: "RHDPCD-1130"
+  workflow_id: "c9c0f55f-f291-49de-af48-083d8154f88e"
 
 spec:
   title: ""
