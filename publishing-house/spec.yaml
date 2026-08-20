@@ -21,7 +21,9 @@ project:
 
 spec:
   title: "Publishing House Monorepo: Showroom, GitOps, and Ansible in a Single Repository"
-  learning_objectives: []
+  learning_objectives:
+    - "Explore the structure of a Publishing House monorepo that integrates Showroom content, GitOps resources, and Ansible automation"
+    - "Deploy lab infrastructure components using the GitOps and Ansible automation included in the monorepo"
   modules:
     - id: module-01
       title: "Exploring the Monorepo Structure"
