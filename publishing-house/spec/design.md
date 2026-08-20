@@ -57,13 +57,12 @@ Beginner
 
 ## Infrastructure Requirements
 
-- **Cloud provider:** TBD — confirmed in infrastructure phase
-- **Cluster type:** TBD — confirmed in infrastructure phase
-- **OCP version:** TBD — confirmed in infrastructure phase
-- **Topology:** TBD — confirmed in infrastructure phase
-- **Sizing:** TBD — confirmed in infrastructure phase
-- **Automation approach:** TBD — confirmed in infrastructure phase
-- **AI/MaaS:** TBD — confirmed in infrastructure phase
-- **External services:** TBD — confirmed in infrastructure phase
-- **AAP version:** TBD — confirmed in infrastructure phase
-- **Non-GA products:** TBD — confirmed in infrastructure phase
+- **Platform:** OCP
+- **Cloud provider:** CNV
+- **Cluster type:** SNO (Single Node OpenShift) — 1 node, 32 vCPU, 128GB RAM
+- **OCP version:** 4.20
+- **Topology:** Per-student
+- **AAP version:** 2.5
+- **AI/MaaS:** None
+- **External services:** registry.redhat.io, quay.io, github.com
+- **Non-GA products:** None
