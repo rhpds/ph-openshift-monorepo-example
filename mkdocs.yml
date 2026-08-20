@@ -1,0 +1,10 @@
+site_name: 'Publishing House Monorepo: Showroom, GitOps, and Ansible in a Single Repository'
+docs_dir: publishing-house/spec
+nav:
+- Home: index.md
+- Design Spec: design.md
+- Modules:
+  - Module 1 - Exploring Monorepo Structure: modules/module-01-exploring-monorepo-structure.md
+  - Module 2 - Deploying With Gitops And Ansible: modules/module-02-deploying-with-gitops-and-ansible.md
+plugins:
+- techdocs-core

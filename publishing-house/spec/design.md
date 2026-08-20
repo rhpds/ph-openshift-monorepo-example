@@ -31,7 +31,7 @@ Lab (hands-on)
 
 - Red Hat OpenShift Container Platform
 - Red Hat OpenShift GitOps (ArgoCD)
-- Red Hat Ansible Automation Platform
+- Ansible (collections and CLI — not AAP Controller)
 - Publishing House (RHDP internal lab delivery platform)
 - Showroom (RHDP lab UI framework)
 
@@ -62,7 +62,7 @@ Beginner
 - **Cluster type:** SNO (Single Node OpenShift) — 1 node, 32 vCPU, 128GB RAM
 - **OCP version:** 4.20
 - **Topology:** Per-student
-- **AAP version:** 2.5
+- **AAP:** Not deployed — Ansible used via collections and CLI only
 - **AI/MaaS:** None
 - **External services:** registry.redhat.io, quay.io, github.com
 - **Non-GA products:** None

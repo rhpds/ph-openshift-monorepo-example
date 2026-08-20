@@ -53,7 +53,7 @@ spec:
     vms_per_student: []
 
     # --- Common fields (both platforms) ---
-    aap_version: "2.5"                  # required if AAP in products
+    aap_version: ""                      # required if AAP in products
     ai_requirement: "none"              # maas | gpu | none
     ai_model_tier: ""                   # open-source | frontier (if ai_requirement = maas or gpu)
     ai_model_name: ""                   # specific model e.g. granite-3.1-8b
