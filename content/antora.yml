@@ -1,0 +1,11 @@
+name: modules
+title: Publishing House Monorepo: Showroom, GitOps, and Ansible in a Single Repository
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+
+asciidoc:
+  attributes:
+    experimental: true
+    page-pagination: true
+    guid: '%GUID%'
