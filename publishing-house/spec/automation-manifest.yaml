@@ -5,19 +5,26 @@
 #
 # See the automation manifest format guide for field reference.
 
-# approach: ansible | gitops | both
+approach: both
 
-# infrastructure:
-#   type: ocp-cnv | ocp-aws | rhel-vms | sandbox-cluster | sandbox-tenant
-#   ocp_version: ""
-#   multi_user: false
-#   users_per_deployment: 1
+infrastructure:
+  type: ocp-cnv
+  ocp_version: "4.20"
+  multi_user: false
+  users_per_deployment: 1
 
-# operators: []
-# applications: []
-# rbac: []
-# seed_data: []
-# network: []
-# broken_resources: []
-# provision_data: []
-# notes: ""
+operators:
+  - Red Hat OpenShift GitOps
+  - Red Hat Build of Keycloak
+
+applications:
+  - monorepo-demo namespace (GitOps)
+  - monorepo-demo-{{ guid }} namespace (Ansible)
+  - busybox pod (Ansible)
+
+rbac: []
+seed_data: []
+network: []
+broken_resources: []
+provision_data: []
+notes: "Auth via Keycloak. Showroom SA needs cluster-admin for ZT runner."
