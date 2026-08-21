@@ -1,0 +1,66 @@
+= Conclusion and Next Steps
+
+You have completed the Publishing House Monorepo lab.
+Over two modules, you explored how a single Git repository holds lab content, cluster automation, and configuration automation together — and you used all three layers to deploy a working lab environment.
+
+== What You've Learned
+
+Working through this lab, you:
+
+* Traced the structure of a Publishing House monorepo and identified the purpose of the `content/`, `automation/gitops/`, and `automation/ansible/` directories
+* Examined the Showroom content layer — the Antora component descriptor, the navigation file, and the AsciiDoc pages that Showroom renders for participants
+* Explored the GitOps layer — the `bootstrap-infra` Helm chart and ArgoCD Application manifest that declare the cluster's desired state
+* Explored the Ansible collection — the role structure, the `meta/runtime.yml` constraint file, and the playbook that runs configuration tasks
+* Applied the ArgoCD Application manifest and confirmed the cluster reached a synced and healthy state
+* Ran the Ansible playbook and verified the environment using the PLAY RECAP summary
+* Described how the GitOps and Ansible layers divide responsibility: ArgoCD manages desired-state cluster resources, and Ansible handles configuration tasks that fall outside the declarative model
+* Connected the monorepo to the RHDP provisioning pipeline through the AgnosticV integration patterns that reference the Ansible collection and GitOps chart from a single repository
+
+== Next Steps
+
+Ready to build your own lab? Here are three places to start:
+
+* *Start your own monorepo lab* — Run the Publishing House intake process to generate a new monorepo scaffolded to your lab pattern. The intake process sets up the same structure you explored here, customized for your content and automation needs.
+* *Wire into RHDP provisioning* — Review the AgnosticV integration patterns from Module 2 to connect your monorepo's Ansible collection and GitOps chart to an RHDP catalog item.
+* *Read the Publishing House documentation* — The full authoring guide covers the intake workflow, scaffolding options, compliance checks, and publication steps: https://rhpds.github.io/rhdp-publishing-house/
+
+== References
+
+=== Products and tools
+
+[cols="1,3", options="header"]
+|===
+| Product or tool | Description
+
+| Publishing House
+| The RHDP authoring and publishing platform that manages lab repositories from intake through publication
+
+| Showroom
+| The lab UI platform that renders AsciiDoc content for participants; uses Antora to build the content site
+
+| Red Hat OpenShift GitOps (ArgoCD)
+| GitOps continuous delivery tool for OpenShift; reconciles cluster state to manifests stored in a Git repository
+
+| Ansible
+| Automation platform for configuration, provisioning, and application deployment; ships as collections in this monorepo pattern
+
+| Helm
+| Kubernetes package manager; the `bootstrap-infra` chart in `automation/gitops/` is a Helm chart
+
+| Antora
+| Multi-repository documentation site generator used by Showroom to build the lab content site from AsciiDoc pages
+
+| AgnosticV / AgnosticD
+| RHDP catalog and provisioning framework; connects catalog items to Ansible collections and GitOps charts during environment provisioning
+
+| Red Hat Developer Hub
+| Internal developer portal; the `catalog-info.yaml` in the monorepo registers the lab project with Developer Hub
+|===
+
+=== Documentation links
+
+* https://rhpds.github.io/rhdp-publishing-house/[Publishing House documentation]
+* https://docs.openshift.com/gitops/latest/[Red Hat OpenShift GitOps documentation]
+* https://docs.ansible.com/[Ansible documentation]
+* https://docs.antora.org/[Antora documentation]
+* https://helm.sh/docs/[Helm documentation]
