@@ -10,7 +10,7 @@
   connection: local
   gather_facts: false
   vars:
-    monorepo_path: "{{ lookup('env', 'HOME') }}/ph-openshift-monorepo-example"
+    monorepo_path: /showroom/repo
   tasks:
     - name: Monorepo is cloned at expected path
       ansible.builtin.stat:
