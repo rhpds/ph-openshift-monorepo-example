@@ -6,8 +6,8 @@ Deploys a busybox pod into a target OpenShift namespace.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `deploy_busybox_namespace` | `ansible_test_monorepo` | Namespace to deploy the pod into |
-| `deploy_busybox_pod_name` | `busybox` | Name of the Pod resource |
+| `ph_mono_deploy_busybox_namespace` | `ansible_test_monorepo` | Namespace to deploy the pod into |
+| `ph_mono_deploy_busybox_pod_name` | `busybox` | Name of the Pod resource |
 
 ## Requirements
 

@@ -9,8 +9,8 @@
       apiVersion: v1
       kind: Pod
       metadata:
-        name: "{{ deploy_busybox_pod_name }}"
-        namespace: "{{ deploy_busybox_namespace }}"
+        name: "{{ ph_mono_deploy_busybox_pod_name }}"
+        namespace: "{{ ph_mono_deploy_busybox_namespace }}"
       spec:
         containers:
           - name: busybox

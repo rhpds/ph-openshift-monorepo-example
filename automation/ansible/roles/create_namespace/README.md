@@ -10,7 +10,7 @@ None.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| create_namespace_name | ansible_test_monorepo | Name of the namespace to create |
+| ph_mono_create_namespace_name | ansible_test_monorepo | Name of the namespace to create |
 
 ## Dependencies
 

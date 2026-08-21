@@ -2,4 +2,4 @@
 ---
 # defaults file for create_namespace
 
-create_namespace_name: "ansible_test_monorepo"
+ph_mono_create_namespace_name: "ansible_test_monorepo"

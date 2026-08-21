@@ -2,5 +2,5 @@
 ---
 # defaults file for deploy_busybox
 
-deploy_busybox_namespace: "ansible_test_monorepo"
-deploy_busybox_pod_name: "busybox"
+ph_mono_deploy_busybox_namespace: "ansible_test_monorepo"
+ph_mono_deploy_busybox_pod_name: "busybox"
