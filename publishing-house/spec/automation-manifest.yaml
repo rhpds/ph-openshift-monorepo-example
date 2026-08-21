@@ -18,8 +18,6 @@ operators:
   - Red Hat Build of Keycloak
 
 applications:
-  - monorepo-demo namespace (GitOps)
-  - monorepo-demo-{{ guid }} namespace (Ansible)
   - busybox pod (Ansible)
 
 rbac: []
@@ -27,4 +25,4 @@ seed_data: []
 network: []
 broken_resources: []
 provision_data: []
-notes: "Auth via Keycloak. Showroom SA needs cluster-admin for ZT runner."
+notes: "Auth via Keycloak."
