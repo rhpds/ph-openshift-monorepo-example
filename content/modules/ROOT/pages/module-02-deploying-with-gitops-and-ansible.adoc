@@ -10,7 +10,7 @@ The example monorepo is already cloned at `~/ph-openshift-monorepo-example` and 
 You run provided commands — you are not expected to construct them from scratch.
 ====
 
-== Learning Objectives
+== Learning objectives
 
 By the end of this module, you will be able to:
 
@@ -19,7 +19,7 @@ By the end of this module, you will be able to:
 * Observe how the GitOps and Ansible layers complement each other in a Publishing House lab delivery workflow
 * Verify that deployed resources are in the expected state after automation completes
 
-== Introduction: How the Two Automation Layers Work Together
+== Introduction: how the two automation layers work together
 
 The monorepo contains two automation layers, and each layer handles a different type of work.
 
@@ -28,9 +28,8 @@ You describe the desired state in YAML manifests — namespaces, RBAC policies, 
 If someone changes the cluster manually, ArgoCD detects the drift and corrects it.
 Because the manifests live in the repository, the cluster's intended state is always version-controlled and auditable.
 
-*Ansible* handles configuration and orchestration tasks that fall outside the GitOps layer's scope.
-Setting up application state, configuring integrations with external systems, or running one-time bootstrap tasks are all common Ansible responsibilities.
-Ansible executes tasks imperatively — in order — which makes it the right tool for workflows that ArgoCD cannot model as desired-state YAML.
+*Ansible* handles tasks that fall outside the GitOps layer's scope: environment configuration, user provisioning, and any automation that cannot be expressed as desired-state YAML.
+Ansible runs tasks imperatively and in order, which makes it the right tool when ArgoCD's declarative model is not enough.
 
 In this monorepo, both layers are version-controlled together.
 A single pull request can update the cluster manifests and the Ansible automation at the same time, keeping them in sync without any cross-repository coordination.
@@ -121,7 +120,7 @@ Synced,Healthy
 
 If the application shows `OutOfSync` or `Degraded`, open the ArgoCD console and check the *Events* tab on the application detail page for error details.
 
-== Exercise 2: Running Ansible Automation
+== Exercise 2: running Ansible automation
 
 With the cluster-level resources provisioned by ArgoCD, you now run the Ansible playbook from the monorepo collection.
 The playbook handles configuration tasks that complement what the GitOps layer deployed.
@@ -181,7 +180,7 @@ playbook: automation/ansible/playbooks/setup.yml
 A clean syntax check confirms Ansible can locate the playbook and parse the collection without errors.
 If you see a `ERROR!` line, confirm you are at the root of the monorepo (`~/ph-openshift-monorepo-example`) and retry.
 
-== Exercise 3: Verifying the Deployed Environment
+== Exercise 3: verifying the deployed environment
 
 Both automation layers have run.
 In this exercise, you confirm that the deployed resources are in the expected state and review how the two layers divided their responsibilities.
@@ -245,12 +244,12 @@ Active
 
 If either check returns an unexpected value, return to the relevant exercise and follow the troubleshooting guidance in its Verify section.
 
-== AgnosticV Integration
+== AgnosticV integration
 
 This section explains how to connect the monorepo's automation layers to an AgnosticV catalog item so RHDP can provision the lab environment automatically.
 Read through it to understand how the monorepo pattern extends into the RHDP provisioning pipeline — there are no commands to run here.
 
-=== Including the Ansible Collection
+=== Including the Ansible collection
 
 Your catalog item's `common.yml` includes the collection from the monorepo using the `requirements_content` field.
 Because the collection lives in a subdirectory of the project repository, use the `#/path` fragment syntax to point ansible-galaxy to the correct location:
@@ -259,7 +258,7 @@ Because the collection lives in a subdirectory of the project repository, use th
 ----
 requirements_content:
   collections:
-  - name: https://github.com/rhpds/<your-repo>.git#/automation/ansible
+  - name: https://github.com/rhpds/ph-openshift-monorepo-example.git#/automation/ansible
     type: git
     version: main
 ----
@@ -267,7 +266,7 @@ requirements_content:
 The `#/automation/ansible` fragment tells ansible-galaxy to install from that subdirectory rather than the repository root.
 The `version` field accepts a branch name, tag, or commit SHA.
 
-=== Referencing Collection Roles as Workloads
+=== Referencing collection roles as workloads
 
 Once the collection is included, reference your roles alongside AgnosticD core workloads in the catalog item:
 
@@ -275,13 +274,13 @@ Once the collection is included, reference your roles alongside AgnosticD core w
 ----
 workloads:
   - agnosticd.core_workloads.ocp4_workload_authorino
-  - <namespace>.ansible.<role_name>
+  - ph_openshift_monorepo_example.ansible.create_users
 ----
 
-Replace `<namespace>` with your collection's namespace and `<role_name>` with the role you want to run.
+Replace `ph_openshift_monorepo_example` with your collection's namespace and `create_users` with the role you want to run.
 The AgnosticD framework runs each workload role in order during environment provisioning.
 
-=== Wiring in the GitOps Layer
+=== Wiring in the GitOps layer
 
 For the GitOps layer, use the `ocp4_workload_gitops_bootstrap` role from `agnosticd.core_workloads` and point it to the `bootstrap-infra` chart inside your repository:
 
@@ -295,7 +294,7 @@ ocp4_workload_gitops_bootstrap_repo_path: automation/gitops/bootstrap-infra
 
 This tells the role where to find the Helm chart within the same repository, so AgnosticD can deploy it through ArgoCD during environment provisioning — no separate chart repository required.
 
-== Learning Outcomes Checkpoint
+== Learning outcomes checkpoint
 
 Review the questions below.
 If you can answer each one, you have completed this module.
@@ -314,4 +313,3 @@ Ansible ran configuration tasks that complemented what the GitOps layer provisio
 Both layers shipped together from the same repository as the lab content — one pull request, one release tag, all three layers in sync.
 
 This is the Publishing House monorepo pattern in practice.
-Everything a lab needs — content, infrastructure, and automation — lives in one place, versioned together, deployed together.
