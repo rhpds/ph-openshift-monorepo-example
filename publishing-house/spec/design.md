@@ -113,5 +113,4 @@ workloads:
 
 ## Open Items Before Publishing
 
-- `automation/gitops/bootstrap-infra/application.yaml` — referenced in Module 2 Exercise 1; needs to be created so participants can apply it directly
 - AgnosticV placeholders in Module 2 (`<your-repo>`) should be replaced with actual values before publication

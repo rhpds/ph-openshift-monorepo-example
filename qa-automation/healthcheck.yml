@@ -5,11 +5,42 @@
 #
 # Exit 0 = healthy, non-zero = unhealthy.
 
-- name: "Environment Health Check"
+- name: Environment Health Check
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    monorepo_path: "{{ lookup('env', 'HOME') }}/ph-openshift-monorepo-example"
   tasks:
-    - name: "TODO: Implement health checks"
-      ansible.builtin.debug:
-        msg: "Replace this task with checks that verify the environment is ready"
+    - name: Monorepo is cloned at expected path
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}"
+      register: repo_stat
+      failed_when: not repo_stat.stat.exists or not repo_stat.stat.isdir
+
+    - name: Expected top-level directories are present
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/{{ item }}"
+      register: dir_stat
+      failed_when: not dir_stat.stat.exists or not dir_stat.stat.isdir
+      loop:
+        - content
+        - automation/gitops/bootstrap-infra
+        - automation/ansible
+
+    - name: Cluster is reachable and user is logged in
+      ansible.builtin.command: oc whoami
+      register: oc_whoami
+      changed_when: false
+      failed_when: oc_whoami.rc != 0
+
+    - name: ArgoCD server deployment is available
+      kubernetes.core.k8s_info:
+        api_version: apps/v1
+        kind: Deployment
+        name: openshift-gitops-server
+        namespace: openshift-gitops
+      register: argocd_deploy
+      failed_when: >
+        argocd_deploy.resources | length == 0 or
+        (argocd_deploy.resources[0].status.availableReplicas | default(0)) < 1

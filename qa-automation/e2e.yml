@@ -3,11 +3,138 @@
 # Runs all module solve + validate sequences to verify the full lab
 # works from start to finish without manual intervention.
 
-- name: "End-to-End Test"
+- name: End-to-End Test
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    monorepo_path: "{{ lookup('env', 'HOME') }}/ph-openshift-monorepo-example"
+    argocd_app_name: bootstrap-infra
+    argocd_namespace: openshift-gitops
+    gitops_namespace: monorepo-demo
+    ansible_namespace: ansible_test_monorepo
+    busybox_pod_name: busybox
   tasks:
-    - name: "TODO: Implement end-to-end test sequence"
-      ansible.builtin.debug:
-        msg: "Replace this task with your e2e test implementation"
+
+    # ── Module 1: Exploring the Monorepo Structure ──────────────────────────
+
+    - name: "M1 | Monorepo root exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}"
+      register: repo_root
+      failed_when: not repo_root.stat.exists or not repo_root.stat.isdir
+
+    - name: "M1 | Showroom content layer — antora.yml exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/content/antora.yml"
+      register: antora_stat
+      failed_when: not antora_stat.stat.exists
+
+    - name: "M1 | Showroom content layer — antora.yml component name is 'modules'"
+      ansible.builtin.command:
+        cmd: grep -q "^name: modules" content/antora.yml
+        chdir: "{{ monorepo_path }}"
+      changed_when: false
+
+    - name: "M1 | GitOps layer — bootstrap-infra chart directory exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/automation/gitops/bootstrap-infra"
+      register: gitops_stat
+      failed_when: not gitops_stat.stat.exists or not gitops_stat.stat.isdir
+
+    - name: "M1 | GitOps layer — application.yaml exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/automation/gitops/bootstrap-infra/application.yaml"
+      register: app_yaml_stat
+      failed_when: not app_yaml_stat.stat.exists
+
+    - name: "M1 | Ansible layer — galaxy.yml exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/automation/ansible/galaxy.yml"
+      register: galaxy_stat
+      failed_when: not galaxy_stat.stat.exists
+
+    - name: "M1 | Ansible layer — collection namespace is correct"
+      ansible.builtin.command:
+        cmd: grep -q "^namespace: ph_openshift_monorepo_example" automation/ansible/galaxy.yml
+        chdir: "{{ monorepo_path }}"
+      changed_when: false
+
+    - name: "M1 | Ansible layer — create_namespace role exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/automation/ansible/roles/create_namespace"
+      register: cn_role
+      failed_when: not cn_role.stat.exists or not cn_role.stat.isdir
+
+    - name: "M1 | Ansible layer — deploy_busybox role exists"
+      ansible.builtin.stat:
+        path: "{{ monorepo_path }}/automation/ansible/roles/deploy_busybox"
+      register: db_role
+      failed_when: not db_role.stat.exists or not db_role.stat.isdir
+
+    # ── Module 2: Deploying with GitOps and Ansible ─────────────────────────
+
+    - name: "M2 | Install Ansible collection from monorepo"
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install automation/ansible --force
+        chdir: "{{ monorepo_path }}"
+      changed_when: true
+
+    - name: "M2 | Apply ArgoCD Application manifest"
+      ansible.builtin.command:
+        cmd: oc apply -f automation/gitops/bootstrap-infra/application.yaml
+        chdir: "{{ monorepo_path }}"
+      changed_when: true
+
+    - name: "M2 | Wait for ArgoCD Application to sync and become healthy"
+      kubernetes.core.k8s_info:
+        api_version: argoproj.io/v1alpha1
+        kind: Application
+        name: "{{ argocd_app_name }}"
+        namespace: "{{ argocd_namespace }}"
+      register: argocd_app
+      until: >
+        argocd_app.resources | length > 0 and
+        argocd_app.resources[0].status.sync.status == 'Synced' and
+        argocd_app.resources[0].status.health.status == 'Healthy'
+      retries: 20
+      delay: 15
+
+    - name: "M2 | Run Ansible setup playbook"
+      ansible.builtin.command:
+        cmd: ansible-playbook automation/ansible/playbooks/setup.yml
+        chdir: "{{ monorepo_path }}"
+      changed_when: true
+
+    - name: "M2 | Validate — GitOps namespace is Active"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Namespace
+        name: "{{ gitops_namespace }}"
+      register: gitops_ns
+      failed_when: >
+        gitops_ns.resources | length == 0 or
+        gitops_ns.resources[0].status.phase != 'Active'
+
+    - name: "M2 | Validate — Ansible namespace is Active"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Namespace
+        name: "{{ ansible_namespace }}"
+      register: ansible_ns
+      failed_when: >
+        ansible_ns.resources | length == 0 or
+        ansible_ns.resources[0].status.phase != 'Active'
+
+    - name: "M2 | Validate — busybox pod is Running"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Pod
+        name: "{{ busybox_pod_name }}"
+        namespace: "{{ ansible_namespace }}"
+      register: busybox_pod
+      until: >
+        busybox_pod.resources | length > 0 and
+        busybox_pod.resources[0].status.phase == 'Running'
+      retries: 10
+      delay: 6

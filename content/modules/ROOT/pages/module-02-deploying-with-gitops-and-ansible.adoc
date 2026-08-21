@@ -185,7 +185,7 @@ In this exercise, you confirm that the deployed resources are in the expected st
 +
 [source,bash,role="execute"]
 ----
-oc get namespace bootstrap-infra
+oc get namespace monorepo-demo
 ----
 +
 You should see the namespace listed with `STATUS` as `Active`.
@@ -194,7 +194,7 @@ You should see the namespace listed with `STATUS` as `Active`.
 +
 [source,bash,role="execute"]
 ----
-oc get all -n bootstrap-infra
+oc get all -n monorepo-demo
 ----
 +
 The output lists the cluster resources that ArgoCD deployed from the `bootstrap-infra` chart templates.
@@ -215,7 +215,7 @@ You should see the pod listed with `STATUS` as `Running`.
 | Layer | What it provisioned | How it works
 
 | Red Hat OpenShift GitOps (ArgoCD)
-| Namespaces, RBAC policies, and Kubernetes objects defined in the `bootstrap-infra` Helm chart
+| The `monorepo-demo` namespace defined in the `bootstrap-infra` Helm chart
 | Reads manifests from the repository and continuously reconciles the cluster to match the declared state
 
 | Ansible
@@ -233,7 +233,7 @@ echo "ArgoCD sync status:" && \
 oc get application bootstrap-infra -n openshift-gitops \
   -o jsonpath='{.status.sync.status}{"\n"}' && \
 echo "GitOps namespace status:" && \
-oc get namespace bootstrap-infra -o jsonpath='{.status.phase}{"\n"}' && \
+oc get namespace monorepo-demo -o jsonpath='{.status.phase}{"\n"}' && \
 echo "Ansible namespace status:" && \
 oc get namespace ansible_test_monorepo -o jsonpath='{.status.phase}{"\n"}' && \
 echo "Busybox pod status:" && \
@@ -245,9 +245,9 @@ Expected output:
 ----
 ArgoCD sync status:
 Synced
-GitOps namespace status:
+GitOps namespace (monorepo-demo) status:
 Active
-Ansible namespace status:
+Ansible namespace (ansible_test_monorepo) status:
 Active
 Busybox pod status:
 Running

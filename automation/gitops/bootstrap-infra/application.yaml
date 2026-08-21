@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bootstrap-infra
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rhpds/ph-openshift-monorepo-example
+    targetRevision: main
+    path: automation/gitops/bootstrap-infra
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
