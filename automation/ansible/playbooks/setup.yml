@@ -1,0 +1,8 @@
+---
+- name: Configure monorepo lab environment
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: ph_openshift_monorepo_example.automation.create_namespace
+    - role: ph_openshift_monorepo_example.automation.deploy_busybox

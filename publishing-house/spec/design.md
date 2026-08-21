@@ -94,8 +94,8 @@ ocp4_workload_gitops_bootstrap_helm_values: {}
 Collection: `ph_openshift_monorepo_example.automation` — author `prakhar1985 <psrivast@redhat.com>`
 
 **Roles:**
-- `create_users` — Creates 4 Linux users (dev1–dev4) with password `rhdp@3456` on the bastion host using `ansible.builtin.user`
 - `create_namespace` — Creates the `ansible_test_monorepo` namespace on OpenShift using `kubernetes.core.k8s`
+- `deploy_busybox` — Deploys a busybox pod into the `ansible_test_monorepo` namespace using `kubernetes.core.k8s`
 
 **AgnosticV integration** — include the collection via `requirements_content` using the `#/path` fragment syntax:
 ```yaml
@@ -107,12 +107,11 @@ requirements_content:
 
 workloads:
   - agnosticd.core_workloads.ocp4_workload_openshift_gitops
-  - ph_openshift_monorepo_example.ansible.create_users
-  - ph_openshift_monorepo_example.ansible.create_namespace
+  - ph_openshift_monorepo_example.automation.create_namespace
+  - ph_openshift_monorepo_example.automation.deploy_busybox
 ```
 
 ## Open Items Before Publishing
 
-- `automation/ansible/playbooks/setup.yml` — referenced in Module 2 but not yet created; needs a simple playbook invoking the collection roles
 - `automation/gitops/bootstrap-infra/application.yaml` — referenced in Module 2 Exercise 1; needs to be created so participants can apply it directly
-- AgnosticV placeholders in Module 2 (`<your-repo>`, `<namespace>.<role_name>`) should be replaced with actual values before publication
+- AgnosticV placeholders in Module 2 (`<your-repo>`) should be replaced with actual values before publication

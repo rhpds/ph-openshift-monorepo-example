@@ -142,7 +142,7 @@ ansible-playbook automation/ansible/playbooks/setup.yml
 ----
 +
 Ansible prints each task as it runs.
-A line like `TASK [example : Display setup message]` tells you which role and task is executing.
+A line like `TASK [create_namespace : Create OpenShift namespace]` or `TASK [deploy_busybox : Deploy busybox pod]` tells you which role and task is executing.
 `ok:` means the task ran without making changes.
 `changed:` means the task modified something in the environment.
 
@@ -150,17 +150,11 @@ A line like `TASK [example : Display setup message]` tells you which role and ta
 +
 ----
 PLAY RECAP ********************************************************************
-localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+localhost                  : ok=2    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
 ----
 +
 `failed=0` confirms no tasks encountered errors.
 If you see `failed=1` or higher, review the task output above the PLAY RECAP line for the error message.
-
-[NOTE]
-====
-In a production lab, the Ansible playbook would configure application state, provision user accounts, or set up integrations specific to the lab scenario.
-The example playbook here demonstrates structure — the same pattern scales to any configuration task your lab requires.
-====
 
 === Verify
 
@@ -205,6 +199,15 @@ oc get all -n bootstrap-infra
 +
 The output lists the cluster resources that ArgoCD deployed from the `bootstrap-infra` chart templates.
 
+. Confirm that the Ansible playbook provisioned the `ansible_test_monorepo` namespace and deployed the busybox pod:
++
+[source,bash,role="execute"]
+----
+oc get pod busybox -n ansible_test_monorepo
+----
++
+You should see the pod listed with `STATUS` as `Running`.
+
 . Review how the two automation layers divided responsibility:
 +
 [cols="1,2,3", options="header"]
@@ -216,21 +219,25 @@ The output lists the cluster resources that ArgoCD deployed from the `bootstrap-
 | Reads manifests from the repository and continuously reconciles the cluster to match the declared state
 
 | Ansible
-| Application configuration and environment state defined in the collection's roles and playbooks
+| The `ansible_test_monorepo` namespace and the `busybox` pod deployed by the collection's `create_namespace` and `deploy_busybox` roles
 | Executes tasks imperatively, in order, against the cluster or any external targets the playbook targets
 |===
 
 === Verify
 
-Run the following command to confirm that both the ArgoCD Application and the provisioned namespace are in the expected state:
+Run the following command to confirm that the ArgoCD Application, the GitOps namespace, and the Ansible-deployed pod are all in the expected state:
 
 [source,bash,role="execute"]
 ----
 echo "ArgoCD sync status:" && \
 oc get application bootstrap-infra -n openshift-gitops \
   -o jsonpath='{.status.sync.status}{"\n"}' && \
-echo "Namespace status:" && \
-oc get namespace bootstrap-infra -o jsonpath='{.status.phase}{"\n"}'
+echo "GitOps namespace status:" && \
+oc get namespace bootstrap-infra -o jsonpath='{.status.phase}{"\n"}' && \
+echo "Ansible namespace status:" && \
+oc get namespace ansible_test_monorepo -o jsonpath='{.status.phase}{"\n"}' && \
+echo "Busybox pod status:" && \
+oc get pod busybox -n ansible_test_monorepo -o jsonpath='{.status.phase}{"\n"}'
 ----
 
 Expected output:
@@ -238,11 +245,15 @@ Expected output:
 ----
 ArgoCD sync status:
 Synced
-Namespace status:
+GitOps namespace status:
 Active
+Ansible namespace status:
+Active
+Busybox pod status:
+Running
 ----
 
-If either check returns an unexpected value, return to the relevant exercise and follow the troubleshooting guidance in its Verify section.
+If any check returns an unexpected value, return to the relevant exercise and follow the troubleshooting guidance in its Verify section.
 
 == AgnosticV integration
 
@@ -274,10 +285,11 @@ Once the collection is included, reference your roles alongside AgnosticD core w
 ----
 workloads:
   - agnosticd.core_workloads.ocp4_workload_authorino
-  - ph_openshift_monorepo_example.ansible.create_users
+  - ph_openshift_monorepo_example.automation.create_namespace
+  - ph_openshift_monorepo_example.automation.deploy_busybox
 ----
 
-Replace `ph_openshift_monorepo_example` with your collection's namespace and `create_users` with the role you want to run.
+Replace `ph_openshift_monorepo_example` with your collection's namespace and the role names with the roles you want to run.
 The AgnosticD framework runs each workload role in order during environment provisioning.
 
 === Wiring in the GitOps layer

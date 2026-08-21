@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for deploy_busybox
+
+- name: Deploy busybox pod
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: "{{ deploy_busybox_pod_name }}"
+        namespace: "{{ deploy_busybox_namespace }}"
+      spec:
+        containers:
+          - name: busybox
+            image: busybox:latest
+            command:
+              - sleep
+              - "3600"
+        restartPolicy: Always

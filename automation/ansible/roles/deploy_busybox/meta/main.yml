@@ -1,7 +1,7 @@
 #SPDX-License-Identifier: MIT-0
 galaxy_info:
   author: psrivast@redhat.com
-  description: Creates 4 OpenShift users (dev1–dev4) with a shared password
+  description: Deploys a busybox pod into the target namespace
   license: GPL-2.0-or-later
   min_ansible_version: 2.9
   galaxy_tags: []
