@@ -1,1 +1,2 @@
 * xref:index.adoc[Lab Overview]
+* xref:module-01-exploring-monorepo-structure.adoc[Exploring the Monorepo Structure]

@@ -1,1 +1,403 @@
 = Exploring the Monorepo Structure
+
+In this module, you walk through a pre-built Publishing House monorepo.
+You trace how Showroom lab content, Red Hat OpenShift GitOps resources, and Ansible automation are organized in a single Git repository.
+By the end, you can identify each layer and explain why keeping them together simplifies lab lifecycle management.
+
+[NOTE]
+====
+The example monorepo is already cloned and staged in your terminal environment.
+You are not building it from scratch — you are exploring and understanding it.
+====
+
+== Learning Objectives
+
+By the end of this module, you will be able to:
+
+* Identify the top-level directories of a Publishing House monorepo and explain the purpose of each
+* Locate and describe the Showroom content layer, including the Antora component descriptor and lab pages
+* Locate and describe the GitOps resources included in the monorepo
+* Locate and describe the Ansible automation collection included in the monorepo
+* Explain how versioning all three layers together in a single repository benefits lab lifecycle management
+
+== Introduction: What Is the Monorepo Pattern?
+
+When you build a lab for the Red Hat Demo Platform (RHDP), you need three things:
+
+* *Content* — the lab pages participants read and follow
+* *Infrastructure automation* — the GitOps manifests that provision cluster resources
+* *Configuration automation* — the Ansible playbooks that configure the environment
+
+The traditional approach puts each of these in a separate repository.
+That means three places to update, three version histories to keep in sync, and three places where things can drift out of step with each other.
+
+The *monorepo pattern* puts all three in one repository.
+One pull request can update content, infrastructure, and automation together.
+One release tag covers all layers.
+When something breaks, you have one history to review.
+
+Publishing House is built around this pattern.
+Every lab is a single repository that the platform manages from intake through publication.
+
+The monorepo you explore in this lab has three main layers:
+
+[cols="1,3", options="header"]
+|===
+| Directory | Purpose
+
+| `content/`
+| Showroom lab content, organized using Antora conventions
+
+| `automation/gitops/`
+| OpenShift GitOps manifests — Helm charts and ArgoCD resources — for cluster-level provisioning
+
+| `automation/ansible/`
+| Ansible collection with roles and playbooks that complement the GitOps layer
+|===
+
+The exercises below take you through each layer.
+
+== Exercise 1: Navigating the Top-Level Repository Structure
+
+In this exercise, you navigate to the example monorepo and examine its top-level layout.
+
+=== Steps
+
+. Open a terminal and navigate to the cloned example monorepo:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example
+----
+
+. List the top-level contents of the repository:
++
+[source,bash,role="execute"]
+----
+ls -1
+----
++
+You should see output similar to:
++
+----
+automation
+catalog-info.yaml
+CLAUDE.md
+content
+mkdocs.yml
+podman-compose.yaml
+publishing-house
+qa-automation
+README.md
+scaffold.py
+----
+
+. Read the README to understand the project purpose and what each part of the repository does:
++
+[source,bash,role="execute"]
+----
+cat README.md
+----
+
+. Review the top-level structure using the following reference table:
++
+[cols="1,3", options="header"]
+|===
+| Directory or file | Purpose
+
+| `content/`
+| Showroom lab content — AsciiDoc pages organized with Antora
+
+| `automation/`
+| Both automation layers: `gitops/` for cluster resources, `ansible/` for configuration
+
+| `qa-automation/`
+| Health check and end-to-end test playbooks for the lab environment
+
+| `publishing-house/`
+| Publishing House workflow tools, design spec, module outlines, and project state
+
+| `catalog-info.yaml`
+| Developer Hub catalog entry that registers this project with RHDP
+
+| `scaffold.py`
+| Scaffolding tool that sets up the lab pattern (AgD open, guided, or zero-touch)
+
+| `podman-compose.yaml`
+| Local preview configuration for the Showroom content site
+
+| `README.md`
+| Project overview and getting-started guide
+|===
+
+=== Verify
+
+Confirm you are in the correct directory and that the three main layers are present:
+
+[source,bash,role="execute"]
+----
+pwd
+----
+
+[source,bash,role="execute"]
+----
+ls content/ automation/ qa-automation/
+----
+
+You should see output listing subdirectories under each path.
+If you see "No such file or directory" for any of them, confirm you navigated to `~/ph-openshift-monorepo-example`.
+
+== Exercise 2: Examining the Showroom Content Layer
+
+The `content/` directory holds everything the Showroom lab UI needs to render the lab pages.
+It follows Antora conventions: a component descriptor file at the root of the directory and a `modules/` subdirectory that contains the actual pages.
+
+=== Steps
+
+. Navigate into the Showroom content directory:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example/content
+----
+
+. List the contents:
++
+[source,bash,role="execute"]
+----
+ls -la
+----
++
+You see two items: `antora.yml` (the component descriptor) and `modules/` (the content directory).
+
+. Open the Antora component descriptor:
++
+[source,bash,role="execute"]
+----
+cat antora.yml
+----
++
+The component descriptor tells Antora how to build the content site.
+It defines the following key fields:
++
+[cols="1,3", options="header"]
+|===
+| Field | Purpose
+
+| `name`
+| Component identifier used in cross-references across the site
+
+| `title`
+| Display title shown in the Showroom UI
+
+| `version`
+| Content version (`~` means unversioned — common for labs that ship one version at a time)
+
+| `nav`
+| Path to the navigation file that controls the sidebar
+
+| `asciidoc.attributes`
+| AsciiDoc attributes available to all pages (for example, `guid` for per-student tokens)
+|===
+
+. Navigate to the module pages directory to see the lab content:
++
+[source,bash,role="execute"]
+----
+ls -la modules/ROOT/pages/
+----
++
+Each `.adoc` file in this directory is a page in the lab.
+Numbering the files by prefix (for example, `module-01-`, `module-02-`) keeps them in a predictable order.
+
+. Open the navigation file to see how the sidebar is built:
++
+[source,bash,role="execute"]
+----
+cat modules/ROOT/nav.adoc
+----
++
+The nav file uses Antora `xref:` cross-references to link each page.
+The order here controls the order items appear in the lab sidebar.
+
+=== Verify
+
+Confirm the two key Antora files are present:
+
+[source,bash,role="execute"]
+----
+test -f ~/ph-openshift-monorepo-example/content/antora.yml \
+  && echo "antora.yml present" \
+  || echo "antora.yml NOT found"
+----
+
+[source,bash,role="execute"]
+----
+test -d ~/ph-openshift-monorepo-example/content/modules/ROOT/pages \
+  && echo "pages directory present" \
+  || echo "pages directory NOT found"
+----
+
+Both commands should print the "present" message before you continue.
+
+== Exercise 3: Examining the GitOps Resources
+
+The `automation/gitops/` directory holds the OpenShift GitOps resources that provision cluster-level infrastructure for the lab environment.
+In this monorepo, the GitOps layer is implemented as a Helm chart.
+
+=== Steps
+
+. Navigate into the GitOps resources directory:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example/automation/gitops
+----
+
+. List the contents:
++
+[source,bash,role="execute"]
+----
+ls -la
+----
++
+You see one or more chart directories.
+Each directory is a Helm chart that deploys a set of cluster resources.
+
+. Navigate into the `bootstrap-infra` chart and examine its descriptor:
++
+[source,bash,role="execute"]
+----
+cat bootstrap-infra/Chart.yaml
+----
++
+The `Chart.yaml` file defines the chart name, description, and version.
+This is standard Helm structure.
+A chart named `bootstrap-infra` typically provisions cluster-scoped shared resources — namespaces, RBAC policies, operators — that need to exist before participant workloads are deployed.
+
+. List all files in the chart to see its full structure:
++
+[source,bash,role="execute"]
+----
+find bootstrap-infra/ -type f | sort
+----
++
+In a production chart you would see:
++
+* `templates/` — Kubernetes YAML manifests rendered by Helm at deploy time
+* `values.yaml` — configurable defaults that callers can override
+* `values.schema.json` — optional JSON Schema for input validation
+
+. Return to the automation root and note how the two automation directories relate to each other:
++
+[source,bash,role="execute"]
+----
+ls ~/ph-openshift-monorepo-example/automation/
+----
++
+Both `gitops/` and `ansible/` live under `automation/` so it is clear they are automation layers, while `content/` remains separate as the content layer.
+
+=== Verify
+
+Confirm the `bootstrap-infra` chart descriptor is readable:
+
+[source,bash,role="execute"]
+----
+cat ~/ph-openshift-monorepo-example/automation/gitops/bootstrap-infra/Chart.yaml
+----
+
+The output should include the chart name (`bootstrap-infra`) and its description.
+If you see those fields, the chart is in place.
+
+== Exercise 4: Examining the Ansible Automation
+
+The `automation/ansible/` directory holds an Ansible collection.
+Unlike a simple playbook file, an Ansible collection is a structured package that can contain roles, playbooks, plugins, and modules — all namespaced to avoid naming conflicts.
+
+=== Steps
+
+. Navigate into the Ansible automation directory:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example/automation/ansible
+----
+
+. List the contents:
++
+[source,bash,role="execute"]
+----
+ls -la
+----
++
+You see a `meta/` directory and a `roles/` directory.
+These are standard Ansible collection directories.
+
+. Open the collection's runtime metadata file:
++
+[source,bash,role="execute"]
+----
+cat meta/runtime.yml
+----
++
+The `runtime.yml` file declares the minimum Ansible version this collection requires.
+Publishing this constraint ensures the collection works correctly in any environment that meets the requirement.
+
+. Navigate into the roles directory and list the available roles:
++
+[source,bash,role="execute"]
+----
+ls -la roles/
+----
++
+Each subdirectory is an Ansible role.
+Roles are reusable units of automation.
+The `example` role is a placeholder that shows the structure you follow when you add your own automation.
+
+. Examine the example role's task file:
++
+[source,bash,role="execute"]
+----
+cat roles/example/tasks/main.yml
+----
+
+. Examine the role's default variables:
++
+[source,bash,role="execute"]
+----
+cat roles/example/defaults/main.yml
+----
++
+The defaults file defines the variables the role accepts.
+Prefixing variables with the role name — for example, `example_message` — prevents collisions with variables from other roles in the same collection.
+This is an Ansible collection best practice to follow when you build your own roles here.
+
+=== Verify
+
+Confirm the collection structure is in place:
+
+[source,bash,role="execute"]
+----
+ls ~/ph-openshift-monorepo-example/automation/ansible/meta/runtime.yml \
+   ~/ph-openshift-monorepo-example/automation/ansible/roles/example/tasks/main.yml \
+  && echo "Collection structure verified"
+----
+
+Both files should be found and the output should end with "Collection structure verified".
+
+== Learning Outcomes Checkpoint
+
+Review the questions below.
+If you can answer each one, you are ready to move on.
+
+* What three layers does a Publishing House monorepo combine, and which directory holds each layer?
+* What does `antora.yml` define, and why does Antora need it?
+* What does the `Chart.yaml` in the GitOps layer describe?
+* Why does the Ansible collection include a `meta/runtime.yml` file?
+* What is the main benefit of the monorepo pattern when you need to update both lab content and the automation that supports it?
+
+== Conclusion
+
+You have explored the three layers of a Publishing House monorepo: the Showroom content layer in `content/`, the GitOps resources in `automation/gitops/`, and the Ansible automation collection in `automation/ansible/`. Each layer is versioned together, so a single pull request can update content, infrastructure, and automation at the same time — with a shared history and a single release tag covering all three.
+
+In Module 2, you use the GitOps and Ansible automation you just explored to deploy the lab environment.
