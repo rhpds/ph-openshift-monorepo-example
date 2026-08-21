@@ -1,2 +1,3 @@
 * xref:index.adoc[Lab Overview]
 * xref:module-01-exploring-monorepo-structure.adoc[Exploring the Monorepo Structure]
+* xref:module-02-deploying-with-gitops-and-ansible.adoc[Deploying with GitOps and Ansible]

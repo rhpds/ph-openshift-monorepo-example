@@ -1,1 +1,317 @@
 = Deploying with GitOps and Ansible
+
+In this module, you deploy the example lab environment using the GitOps and Ansible automation bundled in the monorepo.
+You apply an ArgoCD Application resource to provision cluster-level infrastructure, then run an Ansible playbook to configure the environment.
+By the end, you can describe how the two layers divide responsibility and confirm that the full automation chain is working as expected.
+
+[NOTE]
+====
+The example monorepo is already cloned at `~/ph-openshift-monorepo-example` and your cluster is pre-configured.
+You run provided commands — you are not expected to construct them from scratch.
+====
+
+== Learning Objectives
+
+By the end of this module, you will be able to:
+
+* Deploy lab infrastructure components by applying the GitOps resources included in the monorepo
+* Execute Ansible automation from the monorepo collection to configure the lab environment
+* Observe how the GitOps and Ansible layers complement each other in a Publishing House lab delivery workflow
+* Verify that deployed resources are in the expected state after automation completes
+
+== Introduction: How the Two Automation Layers Work Together
+
+The monorepo contains two automation layers, and each layer handles a different type of work.
+
+*Red Hat OpenShift GitOps (ArgoCD)* manages cluster-level resources declaratively.
+You describe the desired state in YAML manifests — namespaces, RBAC policies, operators, and other Kubernetes objects — and ArgoCD continuously reconciles the cluster to match those manifests.
+If someone changes the cluster manually, ArgoCD detects the drift and corrects it.
+Because the manifests live in the repository, the cluster's intended state is always version-controlled and auditable.
+
+*Ansible* handles configuration and orchestration tasks that fall outside the GitOps layer's scope.
+Setting up application state, configuring integrations with external systems, or running one-time bootstrap tasks are all common Ansible responsibilities.
+Ansible executes tasks imperatively — in order — which makes it the right tool for workflows that ArgoCD cannot model as desired-state YAML.
+
+In this monorepo, both layers are version-controlled together.
+A single pull request can update the cluster manifests and the Ansible automation at the same time, keeping them in sync without any cross-repository coordination.
+
+The exercises below use each layer in turn.
+
+== Exercise 1: Deploying with Red Hat OpenShift GitOps
+
+In this exercise, you apply the ArgoCD Application resource from the monorepo.
+ArgoCD picks up the manifest, reconciles the cluster, and you verify the result both from the command line and in the ArgoCD console.
+
+=== Steps
+
+. Open a terminal and navigate to the root of the example monorepo:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example
+----
+
+. Confirm that your cluster is reachable and you are logged in:
++
+[source,bash,role="execute"]
+----
+oc whoami
+----
++
+The command prints your username.
+If you see an error, confirm your cluster credentials are set and retry before continuing.
+
+. Navigate into the GitOps resources directory you explored in Module 1:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example/automation/gitops
+----
+
+. Apply the ArgoCD Application manifest to the cluster:
++
+[source,bash,role="execute"]
+----
+oc apply -f bootstrap-infra/application.yaml
+----
++
+You should see output similar to:
++
+----
+application.argoproj.io/bootstrap-infra created
+----
++
+This creates an ArgoCD Application object in the `openshift-gitops` namespace.
+ArgoCD immediately reads the Helm chart at `automation/gitops/bootstrap-infra/` and begins reconciling the cluster to match the chart's templates.
+
+. Watch the application status until reconciliation completes:
++
+[source,bash,role="execute"]
+----
+oc get application bootstrap-infra -n openshift-gitops --watch
+----
++
+Press Ctrl+C once the `SYNC STATUS` column shows `Synced` and `HEALTH STATUS` shows `Healthy`.
+It may take a minute or two for both statuses to appear.
+
+. Open the ArgoCD console in your browser at the address shown in your lab environment panel:
++
+----
+{openshift_gitops_url}
+----
++
+Log in with your cluster credentials.
+Find the `bootstrap-infra` application in the application list and confirm that it shows a green *Synced* badge and a green *Healthy* badge.
+
+=== Verify
+
+Confirm the ArgoCD Application has reached a synced and healthy state:
+
+[source,bash,role="execute"]
+----
+oc get application bootstrap-infra -n openshift-gitops \
+  -o jsonpath='{.status.sync.status},{.status.health.status}{"\n"}'
+----
+
+The output should be:
+
+----
+Synced,Healthy
+----
+
+If the application shows `OutOfSync` or `Degraded`, open the ArgoCD console and check the *Events* tab on the application detail page for error details.
+
+== Exercise 2: Running Ansible Automation
+
+With the cluster-level resources provisioned by ArgoCD, you now run the Ansible playbook from the monorepo collection.
+The playbook handles configuration tasks that complement what the GitOps layer deployed.
+
+=== Steps
+
+. Return to the root of the monorepo:
++
+[source,bash,role="execute"]
+----
+cd ~/ph-openshift-monorepo-example
+----
+
+. Run the provided Ansible playbook to configure the lab environment:
++
+[source,bash,role="execute"]
+----
+ansible-playbook automation/ansible/playbooks/setup.yml
+----
++
+Ansible prints each task as it runs.
+A line like `TASK [example : Display setup message]` tells you which role and task is executing.
+`ok:` means the task ran without making changes.
+`changed:` means the task modified something in the environment.
+
+. Wait for the playbook to finish and review the final summary:
++
+----
+PLAY RECAP ********************************************************************
+localhost                  : ok=3    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+----
++
+`failed=0` confirms no tasks encountered errors.
+If you see `failed=1` or higher, review the task output above the PLAY RECAP line for the error message.
+
+[NOTE]
+====
+In a production lab, the Ansible playbook would configure application state, provision user accounts, or set up integrations specific to the lab scenario.
+The example playbook here demonstrates structure — the same pattern scales to any configuration task your lab requires.
+====
+
+=== Verify
+
+Confirm the playbook is valid and the collection structure is correctly in place:
+
+[source,bash,role="execute"]
+----
+ansible-playbook automation/ansible/playbooks/setup.yml --syntax-check
+----
+
+You should see:
+
+----
+playbook: automation/ansible/playbooks/setup.yml
+----
+
+A clean syntax check confirms Ansible can locate the playbook and parse the collection without errors.
+If you see a `ERROR!` line, confirm you are at the root of the monorepo (`~/ph-openshift-monorepo-example`) and retry.
+
+== Exercise 3: Verifying the Deployed Environment
+
+Both automation layers have run.
+In this exercise, you confirm that the deployed resources are in the expected state and review how the two layers divided their responsibilities.
+
+=== Steps
+
+. Check that the namespace provisioned by the GitOps layer is present and active:
++
+[source,bash,role="execute"]
+----
+oc get namespace bootstrap-infra
+----
++
+You should see the namespace listed with `STATUS` as `Active`.
+
+. List all resources created in that namespace by the GitOps Helm chart:
++
+[source,bash,role="execute"]
+----
+oc get all -n bootstrap-infra
+----
++
+The output lists the cluster resources that ArgoCD deployed from the `bootstrap-infra` chart templates.
+
+. Review how the two automation layers divided responsibility:
++
+[cols="1,2,3", options="header"]
+|===
+| Layer | What it provisioned | How it works
+
+| Red Hat OpenShift GitOps (ArgoCD)
+| Namespaces, RBAC policies, and Kubernetes objects defined in the `bootstrap-infra` Helm chart
+| Reads manifests from the repository and continuously reconciles the cluster to match the declared state
+
+| Ansible
+| Application configuration and environment state defined in the collection's roles and playbooks
+| Executes tasks imperatively, in order, against the cluster or any external targets the playbook targets
+|===
+
+=== Verify
+
+Run the following command to confirm that both the ArgoCD Application and the provisioned namespace are in the expected state:
+
+[source,bash,role="execute"]
+----
+echo "ArgoCD sync status:" && \
+oc get application bootstrap-infra -n openshift-gitops \
+  -o jsonpath='{.status.sync.status}{"\n"}' && \
+echo "Namespace status:" && \
+oc get namespace bootstrap-infra -o jsonpath='{.status.phase}{"\n"}'
+----
+
+Expected output:
+
+----
+ArgoCD sync status:
+Synced
+Namespace status:
+Active
+----
+
+If either check returns an unexpected value, return to the relevant exercise and follow the troubleshooting guidance in its Verify section.
+
+== AgnosticV Integration
+
+This section explains how to connect the monorepo's automation layers to an AgnosticV catalog item so RHDP can provision the lab environment automatically.
+Read through it to understand how the monorepo pattern extends into the RHDP provisioning pipeline — there are no commands to run here.
+
+=== Including the Ansible Collection
+
+Your catalog item's `common.yml` includes the collection from the monorepo using the `requirements_content` field.
+Because the collection lives in a subdirectory of the project repository, use the `#/path` fragment syntax to point ansible-galaxy to the correct location:
+
+[source,yaml]
+----
+requirements_content:
+  collections:
+  - name: https://github.com/rhpds/<your-repo>.git#/automation/ansible
+    type: git
+    version: main
+----
+
+The `#/automation/ansible` fragment tells ansible-galaxy to install from that subdirectory rather than the repository root.
+The `version` field accepts a branch name, tag, or commit SHA.
+
+=== Referencing Collection Roles as Workloads
+
+Once the collection is included, reference your roles alongside AgnosticD core workloads in the catalog item:
+
+[source,yaml]
+----
+workloads:
+  - agnosticd.core_workloads.ocp4_workload_authorino
+  - <namespace>.ansible.<role_name>
+----
+
+Replace `<namespace>` with your collection's namespace and `<role_name>` with the role you want to run.
+The AgnosticD framework runs each workload role in order during environment provisioning.
+
+=== Wiring in the GitOps Layer
+
+For the GitOps layer, use the `ocp4_workload_gitops_bootstrap` role from `agnosticd.core_workloads` and point it to the `bootstrap-infra` chart inside your repository:
+
+[source,yaml]
+----
+workloads:
+  - agnosticd.core_workloads.ocp4_workload_gitops_bootstrap
+
+ocp4_workload_gitops_bootstrap_repo_path: automation/gitops/bootstrap-infra
+----
+
+This tells the role where to find the Helm chart within the same repository, so AgnosticD can deploy it through ArgoCD during environment provisioning — no separate chart repository required.
+
+== Learning Outcomes Checkpoint
+
+Review the questions below.
+If you can answer each one, you have completed this module.
+
+* What does Red Hat OpenShift GitOps (ArgoCD) do when you apply an Application manifest to the cluster?
+* Why is Ansible used alongside GitOps rather than replacing it?
+* What command applied the GitOps resources, and what Kubernetes object did it create?
+* How do you confirm that an ArgoCD Application has reached a synced and healthy state from the command line?
+* In an AgnosticV catalog item, what syntax do you use to reference an Ansible collection stored in a subdirectory of a Git repository?
+
+== Conclusion
+
+You deployed the example lab environment using both automation layers in the monorepo.
+Red Hat OpenShift GitOps (ArgoCD) reconciled the cluster to the state declared in the Helm chart.
+Ansible ran configuration tasks that complemented what the GitOps layer provisioned.
+Both layers shipped together from the same repository as the lab content — one pull request, one release tag, all three layers in sync.
+
+This is the Publishing House monorepo pattern in practice.
+Everything a lab needs — content, infrastructure, and automation — lives in one place, versioned together, deployed together.
