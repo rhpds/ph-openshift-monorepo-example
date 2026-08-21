@@ -1,5 +1,60 @@
-= My Lab Title
+= Publishing House Monorepo: Showroom, GitOps, and Ansible in a Single Repository
 
-This project was created with the RHDP Publishing House template.
+Building a lab for the Red Hat Demo Platform means managing three things at once: the content participants read, the infrastructure that provisions the cluster, and the automation that configures the environment.
+Keeping these in separate repositories works — until someone updates the automation without updating the content, or ships a new lab version without bumping the infrastructure chart.
+Drift happens quickly across repositories, and untangling it takes time.
 
-Run `/rhdp-publishing-house` in Claude Code to begin.
+The *monorepo pattern* keeps all three layers in one repository.
+One pull request, one version tag, one history to review when something breaks.
+Publishing House is built around this pattern: every lab is a single Git repository that the platform manages from intake through publication.
+
+In this lab, you work from a pre-built example monorepo that combines Showroom lab content, Red Hat OpenShift GitOps resources, and Ansible automation.
+You trace how each layer is organized and then deploy the example environment to see the automation work together.
+
+== What You Will Learn
+
+By the end of this lab, you will be able to:
+
+* Explore the structure of a Publishing House monorepo that integrates Showroom content, GitOps resources, and Ansible automation
+* Deploy lab infrastructure components using the GitOps and Ansible automation included in the monorepo
+
+== Who This Lab Is For
+
+This lab is for lab authors and content developers building labs for the Red Hat Demo Platform.
+No prior experience with Publishing House, Showroom, Red Hat OpenShift GitOps, or Ansible is required.
+
+== Prerequisites
+
+* Basic Git familiarity: you should be comfortable cloning a repository and navigating directories
+* No experience with Publishing House, Showroom, OpenShift GitOps, or Ansible is assumed
+
+== Your Lab Environment
+
+You have access to a pre-configured Red Hat OpenShift Container Platform cluster.
+The example monorepo is already cloned and available in your terminal at `~/ph-openshift-monorepo-example`.
+You are not building the monorepo from scratch — you are exploring it and running the automation it contains.
+
+[NOTE]
+====
+All commands in this lab are designed to be run from the terminal in your Showroom environment.
+Code blocks marked with a run button can be executed directly in the terminal panel.
+====
+
+== Lab Outline
+
+[cols="1,3,1", options="header"]
+|===
+| Module | Topic | Duration
+
+| 1
+| xref:module-01-exploring-monorepo-structure.adoc[Exploring the Monorepo Structure]
+| 20 min
+
+| 2
+| xref:module-02-deploying-with-gitops-and-ansible.adoc[Deploying with GitOps and Ansible]
+| 20 min
+|===
+
+*Total duration:* approximately 45 minutes
+
+include::ROOT:nav.adoc[]
