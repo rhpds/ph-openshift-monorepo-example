@@ -1,0 +1,7 @@
+# Generated from https://github.com/rhpds/rhdp-gitops-patterns/skeleton/bootstrap-infra
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monorepo-demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
