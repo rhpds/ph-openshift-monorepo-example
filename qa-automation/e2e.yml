@@ -32,7 +32,7 @@
 
     - name: "M1 | Showroom content layer — antora.yml component name is 'modules'"
       ansible.builtin.command:
-        cmd: grep -q "^name: modules" content/antora.yml
+        cmd: "grep -q \"^name: modules\" content/antora.yml"
         chdir: "{{ monorepo_path }}"
       changed_when: false
 
@@ -56,7 +56,7 @@
 
     - name: "M1 | Ansible layer — collection namespace is correct"
       ansible.builtin.command:
-        cmd: grep -q "^namespace: ph_openshift_monorepo_example" automation/ansible/galaxy.yml
+        cmd: "grep -q \"^namespace: ph_openshift_monorepo_example\" automation/ansible/galaxy.yml"
         chdir: "{{ monorepo_path }}"
       changed_when: false
 
@@ -76,13 +76,13 @@
 
     - name: "M2 | Install Ansible collection from monorepo"
       ansible.builtin.command:
-        cmd: ansible-galaxy collection install automation/ansible --force
+        cmd: "ansible-galaxy collection install automation/ansible --force"
         chdir: "{{ monorepo_path }}"
       changed_when: true
 
     - name: "M2 | Apply ArgoCD Application manifest"
       ansible.builtin.command:
-        cmd: oc apply -f automation/gitops/bootstrap-infra/application.yaml
+        cmd: "oc apply -f automation/gitops/bootstrap-infra/application.yaml"
         chdir: "{{ monorepo_path }}"
       changed_when: true
 
@@ -102,7 +102,7 @@
 
     - name: "M2 | Run Ansible setup playbook"
       ansible.builtin.command:
-        cmd: ansible-playbook automation/ansible/playbooks/setup.yml
+        cmd: "ansible-playbook automation/ansible/playbooks/setup.yml"
         chdir: "{{ monorepo_path }}"
       changed_when: true
 
