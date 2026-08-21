@@ -1,0 +1,8 @@
+#SPDX-License-Identifier: MIT-0
+galaxy_info:
+  author: psrivast@redhat.com
+  description: Creates an OpenShift namespace for the monorepo lab
+  license: GPL-2.0-or-later
+  min_ansible_version: 2.9
+  galaxy_tags: []
+dependencies: []
