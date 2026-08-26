@@ -7,6 +7,17 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  # Default kubeconfig for every kubernetes.core.k8s*/helm module in this
+  # play to the runtime-automation identity (populated by zerotouch-automation
+  # from the runtime-automation-kubeconfig Secret -- see the
+  # ocp4_workload_showroom_runtime_automation_* variables in
+  # agnosticd/showroom's ocp4_workload_showroom role). Without this, tasks
+  # fall back to the pod's own in-cluster identity, which is `edit`-scoped to
+  # its own namespace only and cannot read resources in
+  # openshift-gitops/monorepo-demo/ansible_test_monorepo.
+  module_defaults:
+    group/kubernetes.core.k8s:
+      kubeconfig: "{{ k8s_kubeconfig | default(omit) }}"
   vars:
     monorepo_path: /showroom/repo
     argocd_app_name: bootstrap-infra
