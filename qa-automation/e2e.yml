@@ -23,7 +23,14 @@
     argocd_app_name: bootstrap-infra
     argocd_namespace: openshift-gitops
     gitops_namespace: monorepo-demo
-    ansible_namespace: ansible_test_monorepo
+    # This catalog item's agnosticv config overrides the
+    # create_namespace/deploy_busybox role defaults to
+    # "monorepo-demo-{{ guid }}" (see ph_mono_create_namespace_name /
+    # ph_mono_deploy_busybox_namespace in common.yaml). guid is populated
+    # by zerotouch-automation's user-data extravars; fall back to the
+    # roles' own default when it's unset, e.g. running this playbook
+    # standalone without agnosticv.
+    ansible_namespace: "{{ ('monorepo-demo-' ~ guid) if (guid | default('')) else 'ansible_test_monorepo' }}"
     busybox_pod_name: busybox
   tasks:
 
@@ -67,7 +74,9 @@
 
     - name: "M1 | Ansible layer — collection namespace is correct"
       ansible.builtin.command:
-        cmd: "grep -q \"^namespace: ph_openshift_monorepo_example\" automation/ansible/galaxy.yml"
+        # galaxy.yml quotes its scalar values (namespace: "ph_openshift_..."),
+        # so the pattern must tolerate optional quotes around the value.
+        cmd: "grep -qE '^namespace: \"?ph_openshift_monorepo_example\"?' automation/ansible/galaxy.yml"
         chdir: "{{ monorepo_path }}"
       changed_when: false
 
