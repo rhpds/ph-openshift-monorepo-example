@@ -18,6 +18,14 @@
   module_defaults:
     group/kubernetes.core.k8s:
       kubeconfig: "{{ k8s_kubeconfig | default(omit) }}"
+  # module_defaults above only reaches kubernetes.core.k8s* modules. The raw
+  # `oc apply` command below, and the nested `ansible-playbook
+  # automation/ansible/playbooks/setup.yml` subprocess (whose own
+  # kubernetes.core.k8s tasks have no kubeconfig of their own and won't see
+  # module_defaults across that subprocess boundary), both need the
+  # runtime-automation identity via KUBECONFIG instead.
+  environment:
+    KUBECONFIG: "{{ k8s_kubeconfig | default(omit) }}"
   vars:
     monorepo_path: /showroom/repo
     argocd_app_name: bootstrap-infra
