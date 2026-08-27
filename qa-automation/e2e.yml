@@ -19,13 +19,18 @@
     group/kubernetes.core.k8s:
       kubeconfig: "{{ k8s_kubeconfig | default(omit) }}"
   # module_defaults above only reaches kubernetes.core.k8s* modules. The raw
-  # `oc apply` command below, and the nested `ansible-playbook
-  # automation/ansible/playbooks/setup.yml` subprocess (whose own
-  # kubernetes.core.k8s tasks have no kubeconfig of their own and won't see
-  # module_defaults across that subprocess boundary), both need the
-  # runtime-automation identity via KUBECONFIG instead.
+  # `oc apply` command below needs KUBECONFIG (the CLI's own env var). The
+  # nested `ansible-playbook automation/ansible/playbooks/setup.yml`
+  # subprocess needs K8S_AUTH_KUBECONFIG instead -- its create_namespace/
+  # deploy_busybox roles call kubernetes.core.k8s directly with no
+  # kubeconfig of their own, and that module only honors its own
+  # K8S_AUTH_KUBECONFIG env var, not the generic KUBECONFIG. Set both so
+  # every identity-sensitive call in this play resolves to the
+  # runtime-automation identity instead of falling back to the pod's own
+  # in-cluster identity (edit-scoped to its own namespace).
   environment:
     KUBECONFIG: "{{ k8s_kubeconfig | default(omit) }}"
+    K8S_AUTH_KUBECONFIG: "{{ k8s_kubeconfig | default(omit) }}"
   vars:
     monorepo_path: /showroom/repo
     argocd_app_name: bootstrap-infra
@@ -130,7 +135,16 @@
 
     - name: "M2 | Run Ansible setup playbook"
       ansible.builtin.command:
-        cmd: "ansible-playbook automation/ansible/playbooks/setup.yml"
+        # Without these overrides, the roles fall back to their own
+        # "ansible_test_monorepo" default, creating a stray namespace/pod
+        # instead of idempotently re-applying against the one this catalog
+        # item's agnosticv config actually uses (see ansible_namespace
+        # above) -- and the M2 validation tasks below would then be
+        # checking a namespace this playbook never touched.
+        cmd: >-
+          ansible-playbook automation/ansible/playbooks/setup.yml
+          -e ph_mono_create_namespace_name={{ ansible_namespace }}
+          -e ph_mono_deploy_busybox_namespace={{ ansible_namespace }}
         chdir: "{{ monorepo_path }}"
       changed_when: true
 
